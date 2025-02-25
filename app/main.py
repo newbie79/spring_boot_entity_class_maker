@@ -123,22 +123,22 @@ for table_name in db_tables:
             field_name = to_camel_case(col_name)  # 필드명을 카멜케이스로 변환
             field_type = "String"  # 기본적으로 문자열로 처리
 
-            if "int" in col_type or "mediumint" in col_type:
-                field_type = "Integer"
-            elif "bigint" in col_type:
+            if "bigint" in col_type:
                 field_type = "Long"
+            elif "tinyint" in col_type:
+                field_type = "Boolean"
+            elif "int" in col_type or "mediumint" in col_type:
+                field_type = "Integer"
             elif "double" in col_type or "float" in col_type:
                 field_type = "Double"
             elif "decimal" in col_type:
                 field_type = "java.math.BigDecimal"
-            elif "date" in col_type:
-                field_type = "java.time.LocalDate"
             elif "timestamp" in col_type or "datetime" in col_type:
                 field_type = "java.time.LocalDateTime"
+            elif "date" in col_type:
+                field_type = "java.time.LocalDate"
             elif "varchar" in col_type or "text" in col_type or "char" in col_type or "mediumtext" in col_type or "longtext" in col_type:
                 field_type = "String"
-            elif "tinyint" in col_type:
-                field_type = "Boolean"
             else:
                 raise TypeError(f"Unsupported data type: {table_name}.{col_name} {col_type}")
 
