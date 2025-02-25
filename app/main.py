@@ -156,7 +156,7 @@ for table_name in db_tables:
                 column_definition = f"{column_definition} DEFAULT {default}"
             if extra:
                 column_definition = f"{column_definition} {extra}"
-            f.write(f"    @Column(name = \"{col_name}\", nullable = {nullable == 'YES'}, columnDefinition = \"{column_definition}\")\n")
+            f.write(f"    @Column(name = \"{col_name}\", nullable = {'true' if nullable == 'YES' else 'false'}, columnDefinition = \"{column_definition}\")\n")
             f.write(f"    private {field_type} {field_name};\n\n")
 
         f.write("}\n")
