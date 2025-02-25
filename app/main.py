@@ -139,7 +139,10 @@ for table_name in db_tables:
             elif "double" in col_type or "float" in col_type:
                 field_type = "Double"
             elif "decimal" in col_type:
-                field_type = "java.math.BigDecimal"
+                if not IS_ENTITY_CLASS and col_type.endswith(",0)"):
+                    field_type = "Long"
+                else:
+                    field_type = "java.math.BigDecimal"
             elif "timestamp" in col_type or "datetime" in col_type:
                 field_type = "java.time.LocalDateTime"
             elif "date" in col_type:
