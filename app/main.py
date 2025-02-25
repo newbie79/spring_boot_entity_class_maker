@@ -49,6 +49,7 @@ DB_CONFIG = {
 
 OUTPUT_DIR = "..\\output"  # 생성된 엔티티 클래스 저장 폴더
 FIXED_TABLE_JSON_FILE = "..\\fixed_table_name.json"  # 오류 테이블명 JSON 파일
+IS_ENTITY_CLASS = True  # JPA 엔티티 클래스 생성 여부 (False일 경우 DTO 생성)
 
 # 데이터베이스 연결
 try:
@@ -95,24 +96,30 @@ for table_name in db_tables:
     columns = [col for col in db_columns if col[7] == table_name]
 
     primary_keys = [col[0] for col in columns if col[3] == "PRI"]
-    has_composite_key = len(primary_keys) > 1
+    has_composite_key = IS_ENTITY_CLASS and len(primary_keys) > 1
 
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(f"package {package_name};\n\n")
-        f.write("import lombok.*;\n")
-        f.write("import javax.persistence.*;\n")
-        if has_composite_key:
-            f.write("import java.io.Serializable;\n")
+        if IS_ENTITY_CLASS:
+            f.write("import lombok.*;\n")
+            f.write("import javax.persistence.*;\n")
+            if has_composite_key:
+                f.write("import java.io.Serializable;\n")
+        else:
+            f.write("import lombok.Data;\n")
+            f.write("import lombok.NoArgsConstructor;\n")
+            f.write("import lombok.AllArgsConstructor;\n")
         f.write("\n")
 
         # 테이블 설명 추가
         if table_comment:
             f.write(f"/** {table_comment} */\n")
 
-        if has_composite_key:
-            f.write("@IdClass({}PK.class)\n".format(class_name))
-        f.write("@Entity\n")
-        f.write(f"@Table(name = \"{table_name}\")\n")
+        if IS_ENTITY_CLASS:
+            if has_composite_key:
+                f.write("@IdClass({}PK.class)\n".format(class_name))
+            f.write("@Entity\n")
+            f.write(f"@Table(name = \"{table_name}\")\n")
         f.write("@Data\n")
         f.write("@NoArgsConstructor\n")
         f.write("@AllArgsConstructor\n")
@@ -147,16 +154,16 @@ for table_name in db_tables:
             # f.write(f"    /* (Nullable: {nullable}, Key: {key}, Default: {default}, Extra: {extra}) */\n")
 
             # 기본 키 설정
-            if key == "PRI":
+            if IS_ENTITY_CLASS and key == "PRI":
                 f.write("    @Id\n")
 
-            # f.write(f"    @Column(name = \"{col_name}\")\n")
-            column_definition = f"{col_type}"
-            if default and default != "None" and default != "NULL":
-                column_definition = f"{column_definition} DEFAULT {default}"
-            if extra:
-                column_definition = f"{column_definition} {extra}"
-            f.write(f"    @Column(name = \"{col_name}\", nullable = {'true' if nullable == 'YES' else 'false'}, columnDefinition = \"{column_definition}\")\n")
+            if IS_ENTITY_CLASS:
+                column_definition = f"{col_type}"
+                if default and default != "None" and default != "NULL":
+                    column_definition = f"{column_definition} DEFAULT {default}"
+                if extra:
+                    column_definition = f"{column_definition} {extra}"
+                f.write(f"    @Column(name = \"{col_name}\", nullable = {'true' if nullable == 'YES' else 'false'}, columnDefinition = \"{column_definition}\")\n")
             f.write(f"    private {field_type} {field_name};\n\n")
 
         f.write("}\n")
